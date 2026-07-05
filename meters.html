@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Поиск паролей ПУ · ИСУЭ</title>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700;800&family=JetBrains+Mono:wght@400;500;600;700&family=Golos+Text:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --purple-deep: #4B32B0;
+    --purple: #6C4FE0;
+    --purple-light: #8B6FF0;
+    --purple-pale: #EFE9FD;
+    --lime: #C4EA3A;
+    --lime-deep: #9BC220;
+    --ink: #191521;
+    --paper: #F6F4F0;
+    --card: #FFFFFF;
+    --text: #191521;
+    --text2: #6B6478;
+    --border: #E6E1F5;
+    --warn: #A8720F;
+    --warn-bg: #FCF1D8;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+  body {
+    font-family: 'Golos Text', sans-serif;
+    background: var(--paper);
+    color: var(--text);
+    min-height: 100dvh;
+    background-image:
+      radial-gradient(circle at 100% 0%, rgba(196,234,58,0.10) 0%, transparent 40%),
+      radial-gradient(circle at 0% 100%, rgba(108,79,224,0.08) 0%, transparent 45%);
+  }
+
+  .mono { font-family: 'JetBrains Mono', monospace; }
+
+  .header { max-width: 760px; margin: 0 auto; padding: 36px 20px 0; }
+  .hero-card {
+    background: var(--ink);
+    border-radius: 28px;
+    padding: 36px 28px 30px;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero-card::before {
+    content: ''; position: absolute; top: -70px; right: -60px;
+    width: 220px; height: 220px; border-radius: 50%;
+    background: var(--purple); opacity: 0.55; filter: blur(4px);
+  }
+  .hero-card::after {
+    content: ''; position: absolute; bottom: -90px; left: -50px;
+    width: 200px; height: 200px; border-radius: 50%;
+    background: var(--lime); opacity: 0.22; filter: blur(2px);
+  }
+  .hero-inner { position: relative; }
+  .eyebrow {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-family: 'Unbounded', sans-serif;
+    font-size: 10.5px; font-weight: 700; letter-spacing: 0.6px; text-transform: uppercase;
+    color: var(--ink); background: var(--lime);
+    padding: 6px 12px; border-radius: 20px; margin-bottom: 18px;
+  }
+  .title {
+    font-family: 'Unbounded', sans-serif;
+    font-size: 30px; font-weight: 800; color: #fff; line-height: 1.15; letter-spacing: -0.3px;
+  }
+  .title span { color: var(--lime); }
+  .subtitle { font-size: 13.5px; color: rgba(255,255,255,0.55); margin-top: 12px; max-width: 480px; line-height: 1.5; }
+  .stat-row { display: flex; gap: 10px; margin-top: 24px; flex-wrap: wrap; }
+  .stat {
+    background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 16px; padding: 12px 16px; flex: 1; min-width: 130px;
+  }
+  .stat b { font-family: 'JetBrains Mono', monospace; font-size: 19px; font-weight: 700; color: var(--lime); display: block; }
+  .stat span { font-size: 10.5px; color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: 0.4px; }
+
+  .search-wrap { max-width: 760px; margin: 0 auto; padding: 22px 20px 60px; }
+  .search-card {
+    background: var(--card); border-radius: 24px;
+    box-shadow: 0 16px 44px rgba(75,50,176,0.12);
+    border: 2px solid var(--ink); padding: 22px;
+  }
+  .search-box {
+    display: flex; align-items: center; gap: 12px;
+    background: var(--paper); border: 2px solid var(--border);
+    border-radius: 16px; padding: 14px 16px;
+    transition: border-color 0.15s, background 0.15s;
+  }
+  .search-box:focus-within { border-color: var(--purple); background: #fff; }
+  .search-box svg { width: 20px; height: 20px; color: var(--text2); flex-shrink: 0; }
+  .search-box input {
+    flex: 1; border: none; outline: none; background: none;
+    font-family: 'JetBrains Mono', monospace; font-size: 16px; font-weight: 500; color: var(--text); letter-spacing: 0.3px;
+  }
+  .search-box input::placeholder { font-family: 'Golos Text', sans-serif; color: #B3ACC4; font-weight: 400; }
+  .clear-btn {
+    width: 26px; height: 26px; border-radius: 50%; background: var(--border); border: none; cursor: pointer;
+    display: none; align-items: center; justify-content: center; color: var(--text2); font-size: 14px; flex-shrink: 0;
+  }
+  .clear-btn.show { display: flex; }
+  .search-hint { font-size: 12px; color: var(--text2); margin-top: 12px; padding-left: 4px; }
+  .search-hint b { color: var(--purple-deep); font-weight: 700; background: var(--purple-pale); padding: 1px 6px; border-radius: 6px; }
+
+  .results-list { margin-top: 14px; display: flex; flex-direction: column; gap: 8px; }
+  .result-item {
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    padding: 13px 15px; border-radius: 14px; background: var(--paper); border: 2px solid var(--border);
+    cursor: pointer; transition: background 0.12s, transform 0.1s, border-color 0.12s;
+  }
+  .result-item:active { transform: scale(0.98); }
+  .result-item:hover { background: var(--purple-pale); border-color: var(--purple-light); }
+  .result-id { font-family: 'JetBrains Mono', monospace; font-weight: 600; font-size: 14.5px; }
+  .result-badge {
+    font-family: 'Unbounded', sans-serif; font-size: 9.5px; font-weight: 700; letter-spacing: 0.3px; text-transform: uppercase;
+    padding: 4px 10px; border-radius: 20px;
+  }
+  .badge-full { background: var(--lime); color: var(--ink); }
+  .badge-simple { background: var(--warn-bg); color: var(--warn); }
+
+  .state-block { text-align: center; padding: 36px 16px 10px; color: var(--text2); }
+  .state-block .icon-wrap {
+    width: 60px; height: 60px; margin: 0 auto 14px; background: var(--purple-pale); border-radius: 18px;
+    display: flex; align-items: center; justify-content: center; font-size: 26px;
+  }
+  .state-block p { font-size: 13.5px; line-height: 1.6; }
+  .state-block b { color: var(--ink); }
+
+  .detail-card { margin-top: 16px; border-radius: 22px; overflow: hidden; border: 2px solid var(--ink); animation: fadeUp 0.25s ease; }
+  @keyframes fadeUp { from { opacity:0; transform: translateY(10px); } to { opacity:1; transform: translateY(0); } }
+
+  .detail-head { background: var(--ink); padding: 22px 22px 20px; position: relative; overflow: hidden; }
+  .detail-head::before {
+    content: ''; position: absolute; top: -50px; right: -30px; width: 140px; height: 140px; border-radius: 50%;
+    background: var(--purple); opacity: 0.5; filter: blur(3px);
+  }
+  .detail-head-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; position: relative; }
+  .detail-id { font-family: 'JetBrains Mono', monospace; font-size: 21px; font-weight: 700; color: #fff; letter-spacing: 0.3px; }
+  .detail-id-label { font-family: 'Unbounded', sans-serif; font-size: 9.5px; color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 5px; }
+  .status-pill {
+    font-family: 'Unbounded', sans-serif; font-size: 10px; font-weight: 700; padding: 6px 12px; border-radius: 20px;
+    background: rgba(255,255,255,0.12); color: #fff; white-space: nowrap;
+  }
+  .status-pill.ok { background: var(--lime); color: var(--ink); }
+  .status-pill.warn { background: var(--warn-bg); color: var(--warn); }
+  .detail-type { font-size: 12.5px; color: rgba(255,255,255,0.62); margin-top: 12px; line-height: 1.4; position: relative; }
+
+  .detail-body { background: var(--card); padding: 4px 0 6px; }
+  .pw-section { padding: 20px 22px 6px; }
+  .pw-grid { display: grid; grid-template-columns: 1fr; gap: 10px; }
+  @media (min-width: 480px) { .pw-grid.two-col { grid-template-columns: 1fr 1fr; } }
+  .pw-box {
+    background: var(--purple-pale); border: 2px solid #DCD2FB; border-radius: 14px; padding: 13px 15px;
+    display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  }
+  .pw-box-label { font-family: 'Unbounded', sans-serif; font-size: 9.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--purple-deep); margin-bottom: 5px; }
+  .pw-box-value { font-family: 'JetBrains Mono', monospace; font-weight: 600; font-size: 15.5px; color: var(--ink); word-break: break-all; }
+  .copy-btn {
+    width: 34px; height: 34px; border-radius: 10px; flex-shrink: 0; background: #fff; border: 2px solid #DCD2FB; cursor: pointer;
+    display: flex; align-items: center; justify-content: center; color: var(--purple-deep); transition: background 0.12s, transform 0.1s;
+  }
+  .copy-btn:active { transform: scale(0.9); }
+  .copy-btn.copied { background: var(--lime); border-color: var(--lime-deep); color: var(--ink); }
+  .copy-btn svg { width: 15px; height: 15px; }
+
+  .info-grid { padding: 8px 22px 20px; display: grid; grid-template-columns: 1fr 1fr; gap: 0; }
+  .info-cell { padding: 12px 0; border-bottom: 1px dashed var(--border); }
+  .info-cell:nth-last-child(2), .info-cell:last-child { border-bottom: none; }
+  .info-label { font-family: 'Unbounded', sans-serif; font-size: 9.5px; color: var(--text2); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
+  .info-value { font-size: 13.5px; font-weight: 600; color: var(--ink); font-family: 'JetBrains Mono', monospace; }
+  .info-value.text { font-family: 'Golos Text', sans-serif; font-weight: 500; }
+  .info-value.empty { color: #C3BCD4; font-weight: 400; font-family: 'Golos Text', sans-serif; }
+
+  .cal-warn {
+    margin: 0 22px 18px; background: var(--warn-bg); border: 2px solid #F0D9A8; border-radius: 14px;
+    padding: 12px 15px; font-size: 12.5px; color: #8A5D14; display: flex; align-items: center; gap: 8px;
+  }
+
+  .footer-note { text-align: center; font-size: 11.5px; color: var(--text2); margin: 24px 0 8px; padding: 0 20px; line-height: 1.6; }
+
+  .toast {
+    position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(20px);
+    background: var(--ink); color: #fff; padding: 12px 22px; border-radius: 14px; font-size: 13px; font-weight: 500;
+    opacity: 0; transition: opacity 0.2s, transform 0.2s; pointer-events: none; z-index: 100;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.25); border: 2px solid var(--lime);
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  ::selection { background: var(--lime); color: var(--ink); }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="hero-card">
+    <div class="hero-inner">
+      <div class="eyebrow">⚡ Россети · Северные электросети</div>
+      <div class="title">Поиск паролей<br><span>приборов учёта</span></div>
+      <div class="subtitle">Введите заводской номер ПУ — полностью или частично — и получите пароль доступа и полную техническую карточку.</div>
+      <div class="stat-row">
+        <div class="stat"><b class="mono" id="stat-total">—</b><span>Всего в базе</span></div>
+        <div class="stat"><b class="mono" id="stat-full">—</b><span>Полных карточек</span></div>
+        <div class="stat"><b class="mono" id="stat-simple">—</b><span>Только пароль</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="search-wrap">
+  <div class="search-card">
+    <div class="search-box">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input type="text" id="search-input" placeholder="Например: 021250528032" inputmode="numeric" autocomplete="off">
+      <button class="clear-btn" id="clear-btn">✕</button>
+    </div>
+    <div class="search-hint" id="search-hint">Можно вводить частично — например <b>528032</b> или <b>0212505</b></div>
+    <div id="results-area"></div>
+  </div>
+
+  <div class="footer-note">База формируется на основе паспортных данных и отчётов производителя.<br>При расхождении данных — сверяйтесь с бумажным паспортом прибора.</div>
+</div>
+
+<div class="toast" id="toast">Скопировано</div>
+
+<script>
+let DB = [];
+let byId = new Map();
+
+const searchInput = document.getElementById('search-input');
+const clearBtn = document.getElementById('clear-btn');
+const resultsArea = document.getElementById('results-area');
+const toast = document.getElementById('toast');
+
+function showToast(msg) {
+  toast.textContent = msg;
+  toast.classList.add('show');
+  setTimeout(() => toast.classList.remove('show'), 1400);
+}
+
+function copyText(text, btn) {
+  navigator.clipboard.writeText(text).then(() => {
+    showToast('Скопировано: ' + text);
+    if (btn) { btn.classList.add('copied'); setTimeout(() => btn.classList.remove('copied'), 900); }
+  });
+}
+window.copyText = copyText;
+
+function fmtType(t) { return t ? t.replace(/-/g, ' – ') : null; }
+
+function isCalibrationSoon(dateStr) {
+  if (!dateStr) return false;
+  const [d,m,y] = dateStr.split('.').map(Number);
+  const target = new Date(y, m-1, d);
+  const monthsLeft = (target - new Date()) / (1000*60*60*24*30);
+  return monthsLeft < 6;
+}
+
+function renderDetail(rec) {
+  const isFull = rec.full;
+  const calSoon = isFull && isCalibrationSoon(rec.nextCalibration);
+
+  let html = `<div class="detail-card">
+    <div class="detail-head">
+      <div class="detail-head-top">
+        <div>
+          <div class="detail-id-label">Заводской номер ПУ</div>
+          <div class="detail-id mono">${rec.id}</div>
+        </div>
+        <div class="status-pill ${isFull ? 'ok' : 'warn'}">${isFull ? '✓ Полная карточка' : '⚠ Только пароль'}</div>
+      </div>
+      ${isFull && rec.fullType ? `<div class="detail-type">${fmtType(rec.fullType)}</div>` : ''}
+    </div>
+    <div class="detail-body">`;
+
+  if (isFull) {
+    html += `<div class="pw-section">
+      <div class="pw-grid two-col">
+        <div class="pw-box"><div><div class="pw-box-label">Пароль на чтение</div><div class="pw-box-value mono">${rec.readPassword || '—'}</div></div>
+          <button class="copy-btn" onclick="copyText('${rec.readPassword||''}', this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
+        </div>
+        <div class="pw-box"><div><div class="pw-box-label">Пароль на запись</div><div class="pw-box-value mono">${rec.writePassword || '—'}</div></div>
+          <button class="copy-btn" onclick="copyText('${rec.writePassword||''}', this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
+        </div>
+      </div>
+      ${rec.blePassword ? `<div class="pw-grid" style="margin-top:10px;">
+        <div class="pw-box"><div><div class="pw-box-label">Пароль BLE</div><div class="pw-box-value mono">${rec.blePassword}</div></div>
+          <button class="copy-btn" onclick="copyText('${rec.blePassword}', this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
+        </div></div>` : ''}
+    </div>`;
+
+    if (calSoon) html += `<div class="cal-warn">⚠️ Ближайшая поверка: <b style="margin-left:4px;">${rec.nextCalibration}</b> — менее полугода</div>`;
+
+    const fields = [
+      ['Производитель', rec.manufacturer, true], ['IMEI', rec.imei, false], ['MAC 2', rec.mac2, false],
+      ['Сетевой адрес', rec.networkAddress, false], ['Класс точности', rec.accuracyClass, false],
+      ['Дата выпуска', rec.releaseDate, false], ['Следующая поверка', rec.nextCalibration, false],
+      ['Часовой пояс', rec.timezone, false], ['Тариф', rec.tariffSchedule, true],
+      ['Пользователь', rec.user, true], ['Версия приложения', rec.appVersion, false], ['Версия настроек', rec.settingsVersion, false],
+    ];
+    html += `<div class="info-grid">`;
+    fields.forEach(([label, value, isText]) => {
+      html += `<div class="info-cell"><div class="info-label">${label}</div><div class="info-value ${value ? (isText?'text':'') : 'empty'}">${value || '—'}</div></div>`;
+    });
+    html += `</div>`;
+  } else {
+    html += `<div class="pw-section">
+      <div class="pw-grid">
+        <div class="pw-box"><div><div class="pw-box-label">Пароль доступа</div><div class="pw-box-value mono">${rec.password}</div></div>
+          <button class="copy-btn" onclick="copyText('${rec.password}', this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
+        </div>
+      </div>
+      <div style="margin-top:14px; font-size:12px; color:var(--text2); line-height:1.6;">
+        Для этого прибора доступен только пароль из общей базы. Технический паспорт (IMEI, даты поверки, сетевой адрес) в системе отсутствует.
+      </div>
+    </div>`;
+  }
+
+  html += `</div></div>`;
+  resultsArea.innerHTML = html;
+}
+
+function renderList(matches, query) {
+  if (matches.length === 0) {
+    resultsArea.innerHTML = `<div class="state-block"><div class="icon-wrap">🔍</div><p>По запросу <b>${query}</b> ничего не найдено.<br>Проверьте номер прибора и попробуйте снова.</p></div>`;
+    return;
+  }
+  if (matches.length === 1) { renderDetail(matches[0]); return; }
+  const shown = matches.slice(0, 40);
+  let html = `<div class="results-list">`;
+  shown.forEach(rec => {
+    html += `<div class="result-item" onclick="selectRecord('${rec.id}')">
+      <span class="result-id mono">${rec.id}</span>
+      <span class="result-badge ${rec.full ? 'badge-full' : 'badge-simple'}">${rec.full ? 'Карточка' : 'Пароль'}</span>
+    </div>`;
+  });
+  html += `</div>`;
+  if (matches.length > 40) html += `<div class="state-block" style="padding-top:16px;"><p>Показаны первые 40 из <b>${matches.length}</b> совпадений. Уточните запрос.</p></div>`;
+  resultsArea.innerHTML = html;
+}
+
+function selectRecord(id) { const rec = byId.get(id); if (rec) renderDetail(rec); }
+window.selectRecord = selectRecord;
+
+function doSearch(q) {
+  q = q.trim();
+  clearBtn.classList.toggle('show', q.length > 0);
+  if (!q) {
+    resultsArea.innerHTML = `<div class="state-block"><div class="icon-wrap">⚡</div><p>Начните вводить номер прибора учёта,<br>чтобы найти пароль.</p></div>`;
+    return;
+  }
+  renderList(DB.filter(r => r.id.includes(q)), q);
+}
+
+searchInput.addEventListener('input', e => doSearch(e.target.value));
+clearBtn.addEventListener('click', () => { searchInput.value=''; doSearch(''); searchInput.focus(); });
+
+async function loadData() {
+  resultsArea.innerHTML = `<div class="state-block"><div class="icon-wrap">⏳</div><p>Загрузка базы приборов…</p></div>`;
+  try {
+    const resp = await fetch('meters_data.json');
+    DB = await resp.json();
+    DB.forEach(r => byId.set(r.id, r));
+    document.getElementById('stat-total').textContent = DB.length.toLocaleString('ru-RU');
+    document.getElementById('stat-full').textContent = DB.filter(r=>r.full).length.toLocaleString('ru-RU');
+    document.getElementById('stat-simple').textContent = DB.filter(r=>!r.full).length.toLocaleString('ru-RU');
+    doSearch('');
+  } catch(e) {
+    resultsArea.innerHTML = `<div class="state-block"><div class="icon-wrap">⚠️</div><p>Не удалось загрузить базу приборов.<br>Проверьте, что файл <b>meters_data.json</b> находится рядом с этой страницей.</p></div>`;
+  }
+}
+loadData();
+</script>
+</body>
+</html>
